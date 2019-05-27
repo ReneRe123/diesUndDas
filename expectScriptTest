@@ -1,0 +1,30 @@
+PC:~ rene$ cat expecttest.exp 
+#!/usr/bin/expect
+log_user 1
+set timeout 15
+set user [lindex $argv 0]
+set host [lrange $argv 1 end]
+eval spawn ssh -oStrictHostKeyChecking=no -oCheckHostIP=no $user@$host
+#use correct prompt
+set prompt ":|#|\\\$"
+interact -o -nobuffer -re $prompt return
+send "password\r"
+interact -o -nobuffer -re $prompt return
+send "ps ax | grep finder\r"
+interact -o -nobuffer -re $prompt return
+send "ls /tmp\r"
+sleep 1
+expect eof
+
+
+PC:~ rene$ cat script.sh 
+#!/bin/sh
+## declare an array variable
+declare -a arr=("localhost" "pc")
+echo "starte Loop durch HostName-Liste"
+## now loop through the above array
+for host in "${arr[@]}"
+do
+	echo "Starte Task auf Host: $host"
+	./expecttest.exp rene "$host"
+done
